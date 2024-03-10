@@ -1,0 +1,26 @@
+<script type="text/javascript">
+    RED.nodes.registerType('Decoder',{
+        category: 'CANbeSerial',
+        color: '#ba687f',
+        defaults: {
+            name: {value:""}
+        },
+        inputs: 1,
+        outputs: 2,
+        icon: "file.svg",
+        label: function() {
+            return this.name||"CANbeSerial Decoder";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="Decoder">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="Decoder">
+    <p>A node to decode a CANbeSerial data frame into a CAN-massage.</p>
+</script>

@@ -12,8 +12,8 @@ extern "C" {
 
 #define CBS_PROTOCOL_VERSION 1
 
-#define TX_BUFFER_SIZE 100
-#define RX_BUFFER_SIZE 100
+#define TX_BUFFER_SIZE 500
+#define RX_BUFFER_SIZE 500
 #define MAX_FRAME_SIZE 70
 
 typedef enum {
@@ -34,9 +34,13 @@ typedef enum {
 typedef struct {
     cbs_baudrate_t baudrate;
     cbs_baudrate_t fdBaudrate;
-    struct {
-        uint8_t automaticRetransmission:1;
-        uint8_t silentMode:1;
+    union {
+        struct {
+            uint8_t enabled: 1;
+            uint8_t automaticRetransmission: 1;
+            uint8_t silentMode: 1;
+        } bits;
+        uint8_t  byte;
     } bus;
 } cbs_configuration_t ;
 
@@ -68,13 +72,16 @@ typedef struct {
 
 typedef enum {
     cbs_error_crc,
-    cbs_errer_txBufferFull,
+    cbs_error_txBufferFull,
+    cbs_error_txFrameMalformatted,
+    cbs_error_txFrameDlcLengthMismatch,
     cbs_error_unknownPayloadId,
     cbs_error_unsupportedPayloadId,
     cbs_error_data_dlc,
+    cbs_error_can_rx,
+    cbs_error_can_tx,
 
     cbs_error_configurationStateCommand_size
-
 } cbs_error_t;
 
 typedef enum {
@@ -94,23 +101,15 @@ typedef enum {
 
 
 void cbs_init(cbs_t *cbs);
-void cbs_handler(cbs_t *cbs);
 void cbs_onSerialDataReceived(cbs_t *cbs, uint8_t *data, uint8_t dataLength);
 
 void cbs_sendData(cbs_t *cbs, cbs_data_t *data); // send can frame on serial port
-void cbs_handleDataFrame(cbs_t *cbs, cbs_data_t *data); // callback on data -> must be implememnted in appliaction code
+void cbs_sendError(cbs_t *cbs, cbs_error_t error);
 
-// internal function
-void _cbs_encode(cbs_t *cbs, uint8_t *data, uint8_t dataLength);
-void _cbs_send(cbs_t *cbs, uint8_t *data, uint8_t dataLength);
-void _cbs_errorFrame(cbs_t *cbs, cbs_error_t error);
-void _cbs_handleFrame(cbs_t *cbs, uint8_t *data, uint8_t dataLength);
-void _cbs_handleDataFrame(cbs_t *cbs, const uint8_t *data, uint8_t dataLength);
-void _cbs_sendProtocolVersion(cbs_t *cbs);
-void _cbs_sendConfigurationState(cbs_t *cbs);
-void _cbs_setConfigurationState(cbs_t *cbs, const uint8_t *data, uint8_t dataLength);
-void _cbs_sendDeviceInformation(cbs_t *cbs);
-int8_t _cbs_dlcToLength(uint8_t dlc);
+void cbs_handleDataFrame(cbs_t *cbs, cbs_data_t *data); // callback on data -> must be implemented in application code
+void cds_handleConfigurationChange(cbs_t *cbs); // callback on Configuration Change -> must be implemented in application code
+
+int8_t cbs_dlcToLength(uint8_t dlc);
 
 #ifdef __cplusplus
 }

@@ -1,0 +1,17 @@
+{
+    "name": "@canbeserial/node-red-canbeserial",
+    "version"      : "0.0.1",
+    "description"  : "The CANbeSerial encoder / decoder for Node-Red",
+    "keywords": [ "node-red" ],
+    "node-red": {
+        "nodes": {
+            "configuration": "configuration.js",
+            "encoder": "encoder.js",
+            "decoder": "decoder.js"
+        }
+    },
+    "dependencies": {
+        "cobs": "^0.2.1",
+        "crc": "^4.3.2"
+    }
+}
