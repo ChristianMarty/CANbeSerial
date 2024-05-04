@@ -32,14 +32,14 @@ The CANbeSerial uses the COBS (Consistent Overhead Byte Stuffing) framing algori
 
 ### Maximum Frame Lenght
 
-The payload of a frame shall never exceed 70 bytes. In combination with the leading and trailing NULL, the COBS byte, Payload Id and CRC the maximum total frame length is 76 Bytes.
+The payload of a frame shall never exceed 74 bytes. In combination with the leading and trailing NULL, the COBS byte, Payload Id and CRC the maximum total frame length is 80 Bytes.
 
 ### Implementation Guideline
 Each message shall start with a NULL byte and end with a NULL byte. 
 
 The receiving end shall buffer incoming data and process it when NULL is received. 
 
-The receiving stack shall be reinitialized after every NULL.
+The receiving stack should be reinitialized after every NULL.
 
 Timing-based framing, frame timeouts or other time-based actions are strongly discouraged.
 
@@ -121,15 +121,25 @@ A data frame shall be constructed as follows:
     <td>2</td>
     <td>3</td>
     <td>4</td>
+    <td>5</td>
+    <td>6</td>
+    <td>7</td>
+    <td>8</td>
+    <td>9</td>
     <td>n</td>
   </tr>
   <tr>
     <th>Data</th>
+    <td>Timestap (MSB)</td>
+    <td>Timestap </td>
+    <td>Timestap </td>
+    <td>Timestap (LSB)</td>
     <td>CAN Identifier (MSB)</td>
     <td>CAN Identifier </td>
     <td>CAN Identifier </td>
     <td>CAN Identifier (LSB)</td>
     <td>CAN Control Field</td>
+    <td>Reserved</td>
     <td>Data</td>
   </tr>
 </table>
