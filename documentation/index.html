@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>CANbeSerial</title>
+	<link media="print" />
+	<link rel="stylesheet" href="https://www.christian-marty.ch/WebPaperLayout/documentTemplate_A4.css">
+	<link rel="stylesheet" href="https://www.christian-marty.ch/WebPaperLayout/pageLayout.css">
+    <link rel="stylesheet" href="https://www.christian-marty.ch/WebPaperLayout/navigation.css">
+    <link rel="stylesheet" href="global.css">
+</head>
+
+<script src="https://www.christian-marty.ch/WebPaperLayout/page.js"></script>
+<script src="https://www.christian-marty.ch/WebPaperLayout/navigation.js"></script>
+
+<body>
+
+<div class="wpl_navigation">
+</div>
+
+<div class="main">
+
+<document-page 
+    title="CANbeSerial" 
+    subtitle="CAN-Bus over serial" 
+    footer="christian-marty.ch/CANbeSerial/documentation/index.html"
+    link="https://www.christian-marty.ch/CANbeSerial/documentation/index.html"
+>
+    <h1>CANbeSerial</h1>
+    <p>The CANbeSerial protocol was designed to allow the transportation of CAN-Bus frames on any serial stream interface. Possible interfaces include, but are not limited to, Serial Port (RS-232), TCP, and UDP.</p>
+     
+    <h2>Key Features</h2>
+    <ul>
+        <li>Binary protocol with COBS framing</li>
+        <li>CAN-FD support</li>
+        <li>Asynchronous, event driven communication; no polling of the device required</li>
+        <li>Extensive acknowledgment, status, and error messaging from the device</li>
+    </ul>
+
+    <h2>Motivation</h2>
+    <p>While looking for a affordable CAN-FD to USB or Ethernet interface, I noticed the limitations of current solutions.</p>
+
+</document-page>
+
+<document-page>
+    <h2>Terminology</h2>
+    <table>
+        <tr>
+            <th>Host </th>
+            <td>The computer</td>
+        </tr>
+        <tr>
+            <th>Device </th>
+            <td>The interface (microcontroller)</td>
+        </tr>
+        <tr>
+            <th>Frame </th>
+            <td>Unit of data on the data link layer.</td>
+        </tr>
+        <tr>
+            <th>Packet</th>
+            <td>Unit of data on the protocol layer.</td>
+        </tr>
+        <tr>
+            <th>Message</th>
+            <td>Unit of data on the bus (application layer).</td>
+        </tr>
+    </table>
+    <h3>Requirement Levels</h3>
+    <p>Requirement levels are denoted in accordance with RFC2119.</p>
+
+</document-page>
+
+
+<document-page>
+    <h2>Data Link Layer</h2>
+
+    <h3>Framing</h3>
+    <p>The framing is based on the "Consistent Overhead Byte Stuffing" (COBS) algorithm.</p>
+    <p>Each frame starts and ends with the NULL (0h) delimiter byte.</p>
+
+    <table style="border: none;">
+        <tr>
+            <td class="annotation_data" colspan="7">Data Link Layer (Frame)</td>
+        </tr>
+        <tr>
+            <td  colspan="7" ></td>
+        </tr>
+        <tr>
+            <td class="dataframe_frame">Start Byte</br>(NULL)</td>
+            <td class="dataframe_frame">Overhead Byte</td>
+            <td class="dataframe_data">Payload Id</td>
+            <td class="dataframe_data">Payload</td>
+            <td class="dataframe_frame">CRC16</br>(High Byte)</td>
+            <td class="dataframe_frame">CRC16</br>(Low Byte)</td>
+            <td class="dataframe_frame">End Byte</br>(NULL)</td>
+        </tr>
+        <tr>
+            <td style="border: none;" colspan="2" ></td>
+            <td colspan="2" ></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="border: none;"></td>
+            <td class="annotation_data" colspan="2">Protocol Layer (Packet)</td>
+        </tr>
+    </table>
+
+    <h3>CRC</h3>
+    <p>The CRC16 uses an x16 + x12 + x5 + 1 polynomial (0x1021) initialized to 0xFFFF.</p>
+
+    <p>The CRC calculation includes the data contained in a network layer packet, namely the payload id and the payload bytes. 
+        The start-byte and stop-byte as well as the overhead-byte are not included in the CRC calculation.</p>
+
+    <h3>Maximum Frame Lenght</h3>
+
+    <p>The payload of a frame shall never exceed 74 bytes. In combination with the leading and trailing NULL, the COBS byte, Payload Id and CRC the maximum total frame length is 80 Bytes.</p>
+
+    <h3>Implementation Guideline</h3>
+    
+    <p>Each message shall start with a NULL byte and end with a NULL byte.</p>
+    <p>The receiving end shall buffer incoming data and process it when NULL is received.</p>
+    <p>The receiving stack should be reinitialized after every NULL.</p>
+    <p>Timing-based framing, frame timeouts or other time-based actions are strongly discouraged.</p>
+
+</document-page>
+
+<document-page>
+    <h2>Network Layer</h2>
+    <p>Each packet contains a payload id and a payload.</p>
+
+    <table style="border: none;">
+        <tr>
+            <td class="annotation_data" colspan="2">Protocol Layer (Packet)</td>
+        </tr>
+        <tr>
+            <td colspan="2" ></td>
+        </tr>
+        <tr>
+            <td class="dataframe_frame" width="25%">Payload Id</td>
+            <td class="dataframe_data">Payload</td>
+        </tr>
+    </table>
+
+    <h3>Payload Ids</h3>
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Desciption</th>
+            <th>Reply</th>
+        </tr>
+        <tr>
+            <td class ="protocol">0x00</td>
+            <td class ="protocol">Data</td>
+            <td class ="protocol">Bus Data</td>
+            <td>Acknowledgmen or Error</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x01</td>
+            <td class ="protocol">Error</td>
+            <td class ="protocol">Bus Error</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x02</td>
+            <td class ="protocol">Acknowledgmen</td>
+            <td class ="protocol">Transmit Acknowledgmen</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td colspan="4" />
+        </tr>
+        <tr>
+            <td class ="protocol">0x08</td>
+            <td class ="protocol">Protocol Version</td>
+            <td class ="protocol">The CANbeSerial protocol version</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x88</td>
+            <td class ="protocol">Protocol Version Request</td>
+            <td class ="protocol">Request the CANbeSerial protocol version</td>
+            <td class ="protocol">Protocol Version</td>
+        </tr>
+        <tr>
+            <td colspan="4" />
+        </tr>
+        <tr>
+            <td class ="protocol">0x09</td>
+            <td class ="protocol">Configuration State</td>
+            <td class ="protocol">Contains the configuration of the device</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x89</td>
+            <td class ="protocol">Configuration Request</td>
+            <td class ="protocol">Request the configuration of the device</td>
+            <td class ="protocol">Configuration State</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0xC9</td>
+            <td class ="protocol">Configuration Command</td>
+            <td class ="protocol">Sets configuration for the device</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td colspan="4" />
+        </tr>
+        <tr>
+            <td class ="protocol">0x0A</td>
+            <td class ="protocol">Device Information</td>
+            <td class ="protocol">Contains a string that describes the vendor and version of the device</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x8A</td>
+            <td class ="protocol">Device Information Request</td>
+            <td class ="protocol">Request the device information</td>
+            <td class ="protocol">Device Information</td>
+        </tr>    
+        <!--
+        <tr>
+            <td colspan="4" />
+        </tr>
+        <tr>
+            <td class ="protocol">0x0B</td>
+            <td class ="protocol">Device Status</td>
+            <td class ="protocol"></td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x8B</td>
+            <td class ="protocol">Device Status Request</td>
+            <td class ="protocol">Request the device Status</td>
+            <td class ="protocol">Device Status</td>
+        </tr> 
+        --> 
+    </table>
+
+</document-page>
+
+<document-page>
+    <h3>Payload Id 0x00 - Data</h3>
+
+    <p>Data packets can be sent and received from anf by the device.</p>
+
+    <h4>Data packet</h4>
+    <table>
+        <tr>
+            <th class='command_header'>Byte</th>
+            <th>0</th>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>4</th>
+            <th>5</th>
+            <th>6</th>
+            <th>7</th>
+            <th>8</th>
+            <th>9</th>
+            <th>n</th>
+        </tr>
+        <tr>
+            <th>Data</th>
+            <td>Timestap (MSB)</td>
+            <td>Timestap</td>
+            <td>Timestap</td>
+            <td>Timestap (LSB)</td>
+            <td>CAN Identifier (MSB)</td>
+            <td>CAN Identifier</td>
+            <td>CAN Identifier</td>
+            <td>CAN Identifier (LSB)</td>
+            <td>CAN Control Field</td>
+            <td>Reserved</td>
+            <td>Data</td>
+        </tr>
+    </table>
+
+    <h5>Timestap</h5>
+    <p>The timstamp is a 32 bit integer provided by the CAN-Bus pheripherel.</p>
+    <p><b>Note:</b> The device will ignore the timstamp.</p>
+
+    <h4>CAN Control Field</h4>
+    <table>
+        <tr>
+            <th>Bit</th>
+            <th>7</th>
+            <th>6</th>
+            <th>5</th>
+            <th>4</th>
+            <th>3</th>
+            <th>2</th>
+            <th>2</th>
+            <th>0</th>    
+        </tr>
+        <tr>
+            <th>Discription</th>
+            <td colspan="4">Data Length Code</td>
+            <td>Bit Rate Switching</td>
+            <td>Flexible Data Rate</td>
+            <td>Remote Transmission Request</td>
+            <td>Extended</td>
+        </tr>
+
+    </table>
+
+</document-page>
+
+<document-page>
+    <h3>Payload Id 0x01 - Error</h3>
+
+    <p>Error are reported as a single byte error code.</p>
+    <p>Error packets are either transmitted as a response to a received packet or asynchronously, based on a bus error.</p>
+    
+    <h4>Error Codes</h4>
+    <table>
+        <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>Desciption</th>
+        </tr>
+        <tr>
+            <td class ="protocol">0x00</td>
+            <td class ="protocol">No Error</td>
+            <td class ="protocol">"No Error" is reserved for internal use in the software. It sould not be used as an error code.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x01</td>
+            <td class ="protocol">CRC</td>
+            <td class ="protocol">The frame CRC was incorrect.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x02</td>
+            <td class ="protocol">Not Enabled</td>
+            <td class ="protocol">A data package was received while the device is not enabled.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x03</td>
+            <td class ="protocol">Tx Buffer Full</td>
+            <td class ="protocol">The transmit buffer of the device is full, and the data message was discarded.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x04</td>
+            <td class ="protocol">Tx Frame Mal-Formatted</td>
+            <td class ="protocol">The received data frame was was invalide.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x05</td>
+            <td class ="protocol">Tx Frame DLC Length Mismatch</td>
+            <td class ="protocol">The length of the frame does not match the data length code (DLC).</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x06</td>
+            <td class ="protocol">Unknown Payload Id</td>
+            <td class ="protocol">An unknown payload id was received.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x07</td>
+            <td class ="protocol">Unsupported Payload Id</td>
+            <td class ="protocol">An unsupported, but known, payload id was received.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x08</td>
+            <td class ="protocol">Data DLC</td>
+            <td class ="protocol">The data length code (DLC) was invalide.</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x09</td>
+            <td class ="protocol">CAN RX</td>
+            <td class ="protocol">The CAN interface reported a RX-Error</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x0A</td>
+            <td class ="protocol">CAN TX</td>
+            <td class ="protocol">The CAN interface reported a TX-Error</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x0B</td>
+            <td class ="protocol">Configuration State Command</td>
+            <td class ="protocol">An invalie "Configuration State Command" was received.</td>
+        </tr>
+    </table>
+
+    <h3>Payload Id 0x02 - Acknowledgmen</h3>
+    <p>An acknowledgment packat is sent after a message is sucsessfully transmitted on the BUS.</p>
+
+    <h3>Payload Id 0x08 - Protocol Version</h3>
+    <p>The protocol version is reported as a single byte, denoting the numeric version of the protocol (1-255).</p>
+
+    <h3>Payload Id 0x88 - Protocol Version Request</h3>
+    <p>This command will trigger a "Protocol Version" packet from the device.</p>
+
+</document-page>
+
+<document-page>
+    <h3>Payload Id 0x09 - Configuration State</h3>
+
+    <table>
+        <tr>
+            <th class='command_header'>Byte</th>
+            <th>0</th>
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+        </tr>
+        <tr>
+            <th>Data</th>
+            <td>Settings Byte</td>
+            <td>Reserved</td>
+            <td>Baudrate</td>
+            <td>FD Baudrate</td>
+        </tr>
+    </table>
+
+    <h4>Settings Byte</h4>
+    <table>
+        <tr>
+            <th>Bit</th>
+            <th>7</th>
+            <th>6</th>
+            <th>5</th>
+            <th>4</th>
+            <th>3</th>
+            <th>2</th>
+            <th>2</th>
+            <th>0</th>    
+        </tr>
+        <tr>
+            <th>Discription</th>
+            <td colspan="4">Reserved</td>
+            <td>Silent Mode</td>
+            <td>Automatic Retransmission</td>
+            <td>Enabled</td>
+            <td>Submissive</td>
+        </tr>
+    </table>
+
+    <h5>Submissive</h5>
+    <p>In submissive state, the device configuration can not be changed and all "Configuration Command" packets will be ignored.</p>
+    <p>This state is applicable to application specific interfaces, where the settings are pre-configured.</p>
+
+    <h5>Enabled</h5>
+    <p>This bit is set when the CAN peripheral is enabled.</p>
+    <p><b>Note:</b> While disabled, the peripheral must be completely silent on the bus, including not perform CAN-Bus acknowledgments.</p>
+
+    <h5>Automatic Retransmission</h5>
+    <p>While automatic retransmission is enabled, CAN message will be automatically retransmitted until successfully acknowledge.</p>
+
+    <h5>Silent Mode</h5>
+    <p>While in silent mode, the device will receive, but not transmit on the CAN-Bus, including CAN-Bus acknowledgments.</p>
+
+    <h4>Baud Rate Codes</h4>
+    <table>
+        <tr>
+            <th>Code</th>
+            <th>Baud Rate</th>
+        </tr>
+        <tr>
+            <td class ="protocol">0x00</td>
+            <td class ="protocol">10k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x01</td>
+            <td class ="protocol">20k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x02</td>
+            <td class ="protocol">50k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x03</td>
+            <td class ="protocol">100k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x04</td>
+            <td class ="protocol">125k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x05</td>
+            <td class ="protocol">250k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x06</td>
+            <td class ="protocol">500k</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x07</td>
+            <td class ="protocol">1M</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x08</td>
+            <td class ="protocol">2M</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x09</td>
+            <td class ="protocol">5M</td>
+        </tr>
+        <tr>
+            <td class ="protocol">0x0A</td>
+            <td class ="protocol">10M</td>
+        </tr>
+    </table>
+
+</document-page>
+
+<document-page>
+    <h3>Payload Id 0x89 - Configuration Request</h3>
+    <p>This command will trigger a "Configuration State" packet from the device.</p>
+
+    <h3>Payload Id 0xC9 - Configuration Command</h3>
+    <p>The "Configuration Command" uses the same packet format as the "Configuration State".</p>
+
+
+    <h3>Payload Id 0x0A - Device Information</h3>
+    <p>The device information is reported as an ASCII-string.</p>
+    <p><b>Note:</b> The string is not NULL terminated. The string lenght is definde by the packet lenght.</p>
+    
+    <h3>Payload Id 0x8A - Device Information Request</h3>
+    <p>This command will trigger a "Device Information" packet from the device.</p>
+
+
+    <h3>Payload Id 0x0B - Device Status</h3>
+
+    <h3>Payload Id 0x8B - Device Status Request</h3>
+    <p>This command will trigger a "Device Status" packet from the device.</p>
+
+</document-page>

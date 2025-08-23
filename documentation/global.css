@@ -1,0 +1,109 @@
+
+@font-face {
+    font-family: jost;
+    src: url("jost.light.otf") format("opentype");
+}
+
+@font-face {
+    font-family: jost;
+    font-weight: bold;
+    src: url("jost.bold.otf") format("opentype");
+}
+
+body {
+    font-family: 'jost';
+}
+
+h1 {
+    font-size: 16pt;
+    font-weight: bold;
+}
+h2  {
+    font-size: 14pt;
+    font-weight: bold;
+}
+h3  {
+    font-size: 12pt;
+    font-weight: bold;
+}
+h4  {
+    font-size: 10pt;
+    font-weight: bold;
+}
+h5  {
+    font-size: 10pt;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
+p  {
+    font-size: 10pt;
+}
+
+li  {
+    font-size: 10pt;
+}
+
+td.dataframe_frame {
+	border:1px solid #b3adad;
+	text-align:center;
+	padding:1px;
+	background:  #CADAA9;
+	font-size: 10pt;
+}
+
+td.dataframe_data {
+	border:1px solid #b3adad;
+	text-align:center;
+	padding:1px;
+	background: #C0D6E6;
+	font-size: 10pt;
+}
+
+td.annotation_data {
+	border:1px solid #b3adad;
+	text-align:center;
+	padding:1px;
+	background: #e6d4c073;
+	font-size: 10pt;
+}
+
+table.protocol {
+    text-align:left;
+}
+
+th.protocol {
+    width: 130px;
+    font-weight: bold;
+}
+
+td.protocol {
+    text-align:left;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+th.command_header {
+	width: 75px;
+}
+
+table {
+	border:1px solid #b3adad;
+	border-collapse:collapse;
+	padding:1px;
+	width: 100%;;
+}
+table th {
+	border:1px solid #b3adad;
+	padding:1px;
+	background: #f0f0f0;
+	color: #313030;
+	font-size: 12pt;
+}
+table td {
+	border:1px solid #b3adad;
+	text-align:center;
+	padding:1px;
+	background: #ffffff;
+	color: #313030;
+	font-size: 10pt;
+}
