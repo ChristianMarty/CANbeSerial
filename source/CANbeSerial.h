@@ -29,6 +29,7 @@ typedef enum {
     cbs_baudRate_2M,
     cbs_baudRate_5M,
     cbs_baudRate_10M,
+
     cbs_baudRate_error = 0xFF
 } cbs_baudRate_t;
 
@@ -71,6 +72,8 @@ typedef enum {
 // *** Configuration Structure ***
 // This structure can be used defines/contains the configuration of a CAN-Bus endpoint.
 typedef struct {
+	cbs_baudRate_t baudrate;
+    cbs_baudRate_t fdBaudrate;
     union {
         struct {
             uint8_t submissive: 1; // Read-only:  indicates that this connection is submissive and therefor can not change any settings in the configuration.
@@ -83,9 +86,7 @@ typedef struct {
         } bits;
         uint8_t  byte[2];
         uint16_t word;
-    } bus;
-    cbs_baudRate_t baudrate;
-    cbs_baudRate_t fdBaudrate;
+    } bus; 
 } cbs_configuration_t ;
 
 typedef enum {
@@ -96,7 +97,7 @@ typedef enum {
     cbs_lec_bit0Error,
     cbs_lec_crcError,
     cbs_lec_noChange
-}cbs_lastErrorCode_t;
+} cbs_lastErrorCode_t;
 
 typedef struct {
     uint8_t transmitErrorCounter;
@@ -110,16 +111,16 @@ typedef struct {
         } bits;
         uint8_t byte;
     } status;
-}cbs_status_t;
+} cbs_status_t;
 
 typedef struct {
-    cbs_configuration_t configuration;
-
     uint16_t txIndex;
     uint8_t txData[TX_BUFFER_SIZE];
 
     uint16_t rxIndex;
     uint8_t rxData[RX_BUFFER_SIZE];
+	
+	cbs_configuration_t configuration;
     cobs_decodeStream_t cobsDecoder;
 } cbs_t;
 
